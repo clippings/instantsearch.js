@@ -81,6 +81,17 @@ export type InstantSearchOptions<TRouteState = UiState> = {
   searchFunction?: (helper: AlgoliaSearchHelper) => void;
 
   /**
+   * Function called when the internal state changes.
+   *
+   * Using this function turns the experience controlled. This means that you
+   * become in charge of updating the UI state with the `setUiState` function.
+   */
+  onStateChange?: (params: {
+    uiState: UiState;
+    setUiState(uiState: UiState): void;
+  }) => void;
+
+  /**
    * Injects a `uiState` to the `instantsearch` instance. You can use this option
    * to provide an initial state to a widget. Note that the state is only used
    * for the first search. To unconditionally pass additional parameters to the
@@ -115,6 +126,7 @@ class InstantSearch extends EventEmitter {
   public client: InstantSearchOptions['searchClient'];
   public indexName: string;
   public insightsClient: AlgoliaInsightsClient | null;
+  public onStateChange: InstantSearchOptions['onStateChange'] | null = null;
   public helper: AlgoliaSearchHelper | null;
   public mainHelper: AlgoliaSearchHelper | null;
   public mainIndex: Index;
@@ -141,6 +153,7 @@ class InstantSearch extends EventEmitter {
       stalledSearchDelay = 200,
       searchClient = null,
       insightsClient = null,
+      onStateChange = null,
     } = options;
 
     if (indexName === null) {
@@ -211,6 +224,7 @@ See ${createDocumentationLink({
     this.mainIndex = index({
       indexName,
     });
+    this.onStateChange = onStateChange;
 
     this.started = false;
     this.templatesConfig = {
@@ -494,11 +508,29 @@ See ${createDocumentationLink({
     }
   }
 
-  public onStateChange = () => {
+  public setUiState(uiState: UiState) {
+    if (!this.helper) {
+      throw new Error(
+        withUsage('The `start` method needs to be called before `setUiState`.')
+      );
+    }
+
+    this.helper.overrideStateWithoutTriggeringChangeEvent(
+      this.mainIndex.getWidgetSearchParameters(this.helper.state, {
+        uiState: uiState[this.mainIndex.getIndexName()],
+      })
+    );
+
+    this.mainHelper!.search();
+    this.onInternalStateChange();
+  }
+
+  public onInternalStateChange = () => {
     const nextUiState = this.mainIndex.getWidgetState({});
 
     this.middleware.forEach(m => {
       m.onStateChange({
+        // @TODO: should we rename this `uiState` for consistency?
         state: nextUiState,
       });
     });

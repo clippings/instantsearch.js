@@ -58,6 +58,10 @@ export type Index = Widget & {
   render(options: IndexRenderOptions): void;
   dispose(): void;
   getWidgetState(uiState: UiState): UiState;
+  getWidgetSearchParameters(
+    searchParameters: SearchParameters,
+    searchParametersOptions: { uiState: IndexUiState }
+  ): SearchParameters;
 };
 
 function isIndexWidget(widget: Widget): widget is Index {
@@ -305,7 +309,22 @@ const index = (props: IndexProps): Index => {
       // We forward the call to `search` to the "main" instance of the Helper
       // which is responsible for managing the queries (it's the only one that is
       // aware of the `searchClient`).
-      helper.search = () => mainHelper.search();
+      helper.search = () => {
+        if (instantSearchInstance.onStateChange) {
+          instantSearchInstance.onStateChange!({
+            uiState: instantSearchInstance.mainIndex.getWidgetState({}),
+            setUiState: instantSearchInstance.setUiState.bind(
+              instantSearchInstance
+            ),
+          });
+
+          // We don't trigger a search when controlled because it becomes the
+          // responsibility of `setUiState`.
+          return mainHelper;
+        }
+
+        return mainHelper.search();
+      };
 
       // We use the same pattern for the `searchForFacetValues`.
       helper.searchForFacetValues = (
@@ -556,7 +575,11 @@ See https://www.algolia.com/doc/guides/building-search-ui/widgets/customize-an-e
           helper: helper!,
         });
 
-        instantSearchInstance.onStateChange();
+        // We don't trigger an internal change when controlled because it
+        // becomes the responsibility of `setUiState`.
+        if (!instantSearchInstance.onStateChange) {
+          instantSearchInstance.onInternalStateChange();
+        }
       });
     },
 
@@ -619,6 +642,13 @@ See https://www.algolia.com/doc/guides/building-search-ui/widgets/customize-an-e
             [this.getIndexId()]: localUiState,
           }
         );
+    },
+
+    getWidgetSearchParameters(searchParameters, { uiState }) {
+      return getLocalWidgetsSearchParameters(localWidgets, {
+        uiState,
+        initialSearchParameters: searchParameters,
+      });
     },
   };
 };
