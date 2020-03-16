@@ -2,7 +2,7 @@ import { searchBox as searchBoxWidget } from 'instantsearch.js/es/widgets';
 
 export const searchBox = searchBoxWidget({
   container: '[data-widget="searchbox"]',
-  placeholder: 'Product, brand, color, …',
+  placeholder: 'Product, brand, designer, category…',
   templates: {
     submit: `
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 18 18">

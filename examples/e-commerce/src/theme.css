@@ -71,21 +71,15 @@ a[class^='ais-'] {
   grid-template-columns: 1fr;
 }
 
-@media (min-width: 680px) {
+@media (min-width: 900px) {
   .ais-Hits-list {
     grid-template-columns: 1fr 1fr;
   }
 }
 
-@media (min-width: 900px) {
-  .ais-Hits-list {
-    grid-template-columns: 1fr 1fr 1fr;
-  }
-}
-
 @media (min-width: 1200px) {
   .ais-Hits-list {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
   }
 }
 

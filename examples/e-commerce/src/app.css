@@ -198,6 +198,16 @@ mark {
 .hit h1 {
   font-size: 14px;
 }
+.hit h2 {
+  font-size: 13px !important;
+  margin-top: 0;
+  margin-bottom: 0;
+  color: gray;
+}
+
+.hit-link {
+  text-decoration: none;
+}
 
 .hit-category {
   color: #21243d;
@@ -221,10 +231,10 @@ mark {
 .hit-image-container {
   align-items: center;
   display: flex;
-  height: 174px;
+  height: 263px;
   justify-content: center;
   margin: auto;
-  width: 174px;
+  width: 263px;
 }
 
 .hit-image {
